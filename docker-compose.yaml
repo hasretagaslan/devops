@@ -1,0 +1,36 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: always
+      volumes:
+      - myvolume:/home
+    ports:
+      - "8081:27017"
+    networks:
+      vpcbr:
+        ipv4_address: 172.20.0.3
+  java:
+    container_name: spring-boot-app
+    image: house:0.0.7
+    networks:
+      vpcbr:
+        ipv4_address: 172.20.0.2
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+volumes:
+  myvolume:
+    name: myvolume
+    driver: local
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.20.0.0/16
+         gateway: 172.20.0.1
+   
