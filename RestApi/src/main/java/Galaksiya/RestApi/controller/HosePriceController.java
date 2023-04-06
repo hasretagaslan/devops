@@ -5,10 +5,10 @@ import Galaksiya.RestApi.model.HousePrice;
 import Galaksiya.RestApi.repository.HouseRepository;
 import lombok.Data;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.List;
 
 @RestController
@@ -19,16 +19,19 @@ public class HosePriceController {
     private final HouseRepository houseRepository;
 
     @GetMapping("/findAllHouse")
+    @RolesAllowed({"user", "admin"})
     public List<HousePrice> getHouse() {
         return houseRepository.findAll();
     }
 
     @PostMapping(path = "/addNewHouse")
+    @RolesAllowed("admin")
     public HousePrice createHouse(@RequestBody HousePrice HousePrice) {
         return houseRepository.save(HousePrice);
     }
 
     @PutMapping("/updateHouse/{id}")
+    @RolesAllowed("admin")
     public ResponseEntity<HousePrice> updateHouse(@PathVariable String id, @RequestBody HousePrice house) {
         HousePrice updateHouse = houseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("House not exist with id: " + id));
