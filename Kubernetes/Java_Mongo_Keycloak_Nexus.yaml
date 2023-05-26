@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot
+spec:
+  selector:
+    matchLabels:
+      app: springboot
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: springboot
+    spec:
+      containers:
+      - name: springboot
+        image: your-spring-boot-image
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATA_MONGODB_HOST
+          value: mongo
+        - name: KEYCLOAK_AUTH_SERVER_URL
+          value: http://keycloak:8080/auth
+        - name: KEYCLOAK_REALM
+          value: your-realm-name
+        - name: KEYCLOAK_RESOURCE
+          value: your-client-id
+        - name: NEXUS_URL
+          value: http://nexus:8081/repository
+        - name: NEXUS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: nexus-credentials
+              key: username
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nexus-credentials
+              key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot
+spec:
+  selector:
+    app: springboot
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+      volumes:
+      - name: mongo-data
+        persistentVolumeClaim:
+          claimName: mongo-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+  - name: mongo
+    port: 27017
+    targetPort: 27017
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  selector:
+    matchLabels:
+      app: keycloak
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_VENDOR
+          value: POSTGRES
+        - name: DB_ADDR
+          value: postgres
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_DATABASE
+          value: keycloak
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-db-credentials
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-db-credentials
+              key: password
+        - name: KEYCLOAK_USER
+          value: admin
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-admin-credentials
+              key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+

@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: import-data-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: mongo
+        image: mongo
+        command: ["/bin/bash", "-c"]
+        args:
+        - mongoimport --host mongodb.default.svc:27017 --db testdb --collection testcollection --drop --file /home/test1.json
+        volumeMounts:
+         - name: my-volume
+           mountPath: /home/test1.json
+           subPath: test1.json
+      restartPolicy: Never
+      volumes:
+      - name: my-volume
+        configMap:
+          name: test-data
+  backoffLimit: Never

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-import
+spec:
+  template:
+    spec:
+      volumes:
+      - name: my-volume
+        configMap:
+          name: test-data
+      containers:
+      - name: mongodb-import
+        volumeMounts:
+          - name: my-volume
+            mountPath: /home/test1.json
+            subPath: test1.json
+        image: mongo
+        command: ["bash", "-c", "mongoimport --host=mongodb-deployment --port=27017 --db=test --collection=test --file=/home/test1.json --jsonArray"]
+        # command: ["mongoimport"]
+        # args: ["--host=mongodb-service.default.svc", "--db=test", "--collection=test", "--jsonArray", "/home/test1.json"]
+      restartPolicy: Never

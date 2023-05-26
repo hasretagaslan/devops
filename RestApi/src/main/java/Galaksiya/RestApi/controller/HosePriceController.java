@@ -18,10 +18,17 @@ import java.util.List;
 public class HosePriceController {
     private final HouseRepository houseRepository;
 
+
     @GetMapping("/findAllHouse")
-    @RolesAllowed({"user", "admin"})
+    @RolesAllowed("admin")
     public List<HousePrice> getHouse() {
         return houseRepository.findAll();
+    }
+
+    @GetMapping("/test")
+    @RolesAllowed("admin")
+    public String test() {
+        return "test";
     }
 
     @PostMapping(path = "/addNewHouse")

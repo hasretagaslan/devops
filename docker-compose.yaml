@@ -9,28 +9,114 @@ services:
     ports:
       - "8081:27017"
     networks:
-      vpcbr:
-        ipv4_address: 172.20.0.3
+      - vpcbr
+        
+  mongo_seed:
+    image: mongo
+    links:
+      - mongodb
+    command: sh -c "mongoimport --host mongodb -d test -c test --type csv --file /home/London.csv --headerline"
+    volumes:
+      - /home/hasret/Documents/MongoDb/:/home/
+    networks:
+      - vpcbr
+        
   java:
     container_name: spring-boot-app
-    image: ghcr.io/hasretagaslan/devops/house:0.1
+    image: house:1.1.2
     networks:
-      vpcbr:
-        ipv4_address: 172.20.0.2
+      - vpcbr
+        
     restart: always
     ports:
       - "8080:8080"
     depends_on:
       - mongodb
+    extra_hosts:
+      keycloak.test: 172.30.0.5
+    
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:12.0.4
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin123
+      #Db environment
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      #Dişariya açılan port
+    command: ["-Djboss.http.port=8089"]
+    restart: always
+    volumes:
+      - ./keycloak:/opt/jboss/keycloak/standalone/data
+    networks:
+      - vpcbr
+    ports:
+      - 8089:8089
+    depends_on:
+      - db
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - vpcbr
+    ports:
+      - 5432:5432
+    
+      
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    networks:
+      - vpcbr
+    ports:
+      - 5050:80
+      
+  nexus:
+    image: sonatype/nexus3:latest
+    volumes:
+      - "nexus-data:/sonatype-work"
+    environment:
+      NEXUS_SECURITY_REALM: watchtower
+      NEXUS_SECURITY_KEYCLOAK_URL: http://keycloak.test:8089/auth/realms/watchtower
+      NEXUS_SECURITY_KEYCLOAK_CLIENT_ID: nexus3
+      NEXUS_SECURITY_KEYCLOAK_CLIENT_SECRET: 424702c3-b63f-414c-a1c0-d0da6ba4df2f
+ 
+    ports:
+      - 8084:8081
+      - 8083:8083
+      - 8082:8082
+    
+        
 volumes:
   myvolume:
     name: myvolume
     driver: local
+  Myvolumes1:
+    name: Myvolumes1
+    driver: local
+  nexus-data:
+    name: nexus-data
+    driver: local
+  postgres_data:
+    name: postgres_data
+    driver: local
+  keycloak:
+    name: keycloak
+    driver: local
 networks:
   vpcbr:
+    name: test
     driver: bridge
-    ipam:
-     config:
-       - subnet: 172.20.0.0/16
-         gateway: 172.20.0.1
-   

@@ -1,5 +1,6 @@
 package Galaksiya.RestApi.configuration;
 
+import io.netty.handler.codec.http.HttpMethod;
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
@@ -51,7 +52,8 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter
         super.configure(http);
         http
                 .authorizeRequests()
-//                .antMatchers("/products*").hasRole("USER")
+                //.antMatchers("/").permitAll()
+         //.antMatchers(String.valueOf(HttpMethod.GET),"/findAllHouse").hasRole("admin")
                 .anyRequest().permitAll();
         http.csrf().disable();
     }

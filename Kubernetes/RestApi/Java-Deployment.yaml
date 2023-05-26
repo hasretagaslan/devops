@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-boot
+  template:
+    metadata:
+      labels:
+        app: spring-boot
+    spec:
+      imagePullSecrets:
+        - name: my-nexus-creds
+      containers:
+        - name: spring-boot
+          image: localhost:33934/house1:1.1.5
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATA_MONGODB_HOST
+              value: "mongodb"
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: MONGODB_DATABASE
+              value: "test"
