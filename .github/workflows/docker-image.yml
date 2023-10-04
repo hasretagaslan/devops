@@ -14,9 +14,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Build project with Maven
         run: mvn clean install
-      - name: Depcheck
+      - name: Devops
         uses: ./
-        id: Depcheck
+        id: Devops
         with:
           project: 'test'
           path: '.'
