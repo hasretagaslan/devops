@@ -15,7 +15,7 @@ jobs:
       - name: Build project with Maven
         run: mvn clean install
       - name: Devops
-        uses: ./
+        uses: /home/galaksiya/Documents/devops/RestApi/pom.xml
         id: Devops
         with:
           project: 'test'
